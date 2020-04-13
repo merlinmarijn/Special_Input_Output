@@ -32,6 +32,7 @@ namespace Voice_Recognition_Game
         Random rand = new Random();
         int attempts = 5;
         int synattempts = 3;
+        bool Listening = false;
         OpenFileDialog openfiledialog = new OpenFileDialog();
         public Form1()
         {
@@ -69,32 +70,38 @@ namespace Voice_Recognition_Game
 
         private void RecEngine_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            DetectedWordBox.Text = e.Result.Text.ToLower();
-            //if Detected word is the same as current given word do damage and get next word
-            if (e.Result.Text == CurrentWordBox.Text){
-                doDamage(20);
-                if(progressBar1.Value <= 60)
-                {
-                    progressBar1.Value += 40;
-                    attempts = 5;
-                    loadWord();
-                } else { progressBar1.Value = 100; loadWord(); attempts = 5; }
-            } else
+            if (Listening)
             {
-                //If detected word isnt same as current given word -1 chance if 0 chances take damage
-                attempts -= 1;
-                AttemptBox.Text = attempts.ToString();
-                if (attempts <= 0)
+                DetectedWordBox.Text = e.Result.Text.ToLower();
+                //if Detected word is the same as current given word do damage and get next word
+                if (e.Result.Text == CurrentWordBox.Text)
                 {
-                    attempts = 5;
-                    AttemptBox.Text = attempts.ToString();
-                    takeDamage(20);
-                    loadWord();
+                    doDamage(20);
+                    if (progressBar1.Value <= 60)
+                    {
+                        progressBar1.Value += 40;
+                        attempts = 5;
+                        loadWord();
+                    }
+                    else { progressBar1.Value = 100; loadWord(); attempts = 5; }
                 }
-            }
-            if(DetectedWordBox.Text == "exit game")
-            {
-                Application.Exit();
+                else
+                {
+                    //If detected word isnt same as current given word -1 chance if 0 chances take damage
+                    attempts -= 1;
+                    AttemptBox.Text = attempts.ToString();
+                    if (attempts <= 0)
+                    {
+                        attempts = 5;
+                        AttemptBox.Text = attempts.ToString();
+                        takeDamage(20);
+                        loadWord();
+                    }
+                }
+                if (DetectedWordBox.Text == "exit game")
+                {
+                    Application.Exit();
+                }
             }
         }
 
@@ -139,6 +146,7 @@ namespace Voice_Recognition_Game
             EnableHearWord.Visible = false;
             EnableListBox.Visible = false;
             EnableCustomFile.Visible = false;
+            Listening = true;
         }
 
         //Exit Button
