@@ -43,22 +43,10 @@ namespace Voice_Recognition_Game
             ControlBox = false;
             this.CenterToScreen();
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-
-            //Init Choices as commands and add new string to it
-            Choices commands = new Choices();
-            commands.Add(new string[] { "test" });
-            //Init GrammarBuilder and add commands to it
-            GrammarBuilder gBuilder = new GrammarBuilder();
-            gBuilder.Append(commands);
-            //Init Grammar with gBuilder as input
-            Grammar grammar = new Grammar(gBuilder);
-            //Start recEngine in Async mode {standard word list}
+            //Instantia a SpeechRecognitionEngine with all components
             recEngine.LoadGrammarAsync(new DictationGrammar());
-            //Set recEngine input to default pc input
             recEngine.SetInputToDefaultAudioDevice();
-            //set recEngine mode to multiple so it wont automatically close when it hears something
             recEngine.RecognizeAsync(RecognizeMode.Multiple);
-            //Create Listener Event for when recEngine for recognized player speech
             recEngine.SpeechRecognized += RecEngine_SpeechRecognized;
             WordListBox.SelectedValueChanged += WordListBox_SelectedValueChanged;
 
@@ -82,6 +70,7 @@ namespace Voice_Recognition_Game
         private void RecEngine_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             DetectedWordBox.Text = e.Result.Text.ToLower();
+            //if Detected word is the same as current given word do damage and get next word
             if (e.Result.Text == CurrentWordBox.Text){
                 doDamage(20);
                 if(progressBar1.Value <= 60)
@@ -92,6 +81,7 @@ namespace Voice_Recognition_Game
                 } else { progressBar1.Value = 100; loadWord(); attempts = 5; }
             } else
             {
+                //If detected word isnt same as current given word -1 chance if 0 chances take damage
                 attempts -= 1;
                 AttemptBox.Text = attempts.ToString();
                 if (attempts <= 0)
@@ -102,9 +92,14 @@ namespace Voice_Recognition_Game
                     loadWord();
                 }
             }
+            if(DetectedWordBox.Text == "exit game")
+            {
+                Application.Exit();
+            }
         }
 
 
+        //On startup load default wordlist
         private void loadWords()
         {
             using (StreamReader sr = new StreamReader("Words.txt"))
@@ -117,7 +112,7 @@ namespace Voice_Recognition_Game
                 WordListBox.Items.Add(item);
             }
         }
-
+        //Get random word from wordlist and load in current word
         private void loadWord()
         {
             CurrentWordBox.Text = WordList[rand.Next(0, WordList.Length - 1)];
@@ -164,18 +159,21 @@ namespace Voice_Recognition_Game
             AttemptBox.Text = attempts.ToString();
             loadWord();
         }
-        //take damage {input}
+        //take damage (input)
         private void takeDamage(int damage)
         {
-            progressBar1.Value -= damage;
-            if (progressBar1.Value <= 0)
+            if ((progressBar1.Value -= damage) > 0)
             {
-                Restart();
-            }
+                progressBar1.Value -= damage;
+            } else { Restart(); }
         }
+        //do damage (input)
         private void doDamage(int damage)
         {
-            progressBar2.Value -= damage; 
+            if ((progressBar2.Value -= damage)>0)
+            {
+                progressBar2.Value -= damage;
+            } else { Restart(); }
         }
 
         private void Restart()
